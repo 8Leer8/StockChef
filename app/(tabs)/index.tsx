@@ -1,6 +1,6 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import React from "react";
-import { Platform, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Platform, ScrollView, StyleSheet, Text, View, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { BentoCard } from "@/components/ui/BentoCard";
@@ -8,10 +8,33 @@ import { PrimaryActionFab } from "@/components/ui/PrimaryActionFab";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Colors, Layout } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useInventoryQuery, useAddIngredientMutation } from "@/hooks/useInventory";
 
 export default function HomeScreen() {
   const colorScheme = useColorScheme() ?? "light";
   const c = Colors[colorScheme];
+
+  const { data: inventory = [], isLoading } = useInventoryQuery();
+  const addMutation = useAddIngredientMutation();
+
+  const handleAddMockItem = () => {
+    addMutation.mutate({
+      name: 'Fresh Basil',
+      category: 'Produce',
+      quantity: 10,
+      unit: 'bunch',
+      unit_price: 2.50,
+      expiry_date: new Date(Date.now() + 86400000 * 5).toISOString()
+    });
+  };
+
+  const totalItems = inventory.reduce((acc, item) => acc + item.quantity, 0);
+  const inStockPercentage = inventory.length > 0 
+    ? Math.round((inventory.filter(item => item.quantity > 0).length / inventory.length) * 100) 
+    : 0;
+  
+  const lowStockCount = inventory.filter(item => item.quantity > 0 && item.quantity < 5).length;
+  const criticalCount = inventory.filter(item => item.quantity === 0).length;
 
   // Dynamic greeting
   const hour = new Date().getHours();
@@ -69,7 +92,7 @@ export default function HomeScreen() {
           </Text>
           <View style={styles.heroMetrics}>
             <View style={styles.heroMetric}>
-              <Text style={[styles.heroNumber, { color: c.primary }]}>94%</Text>
+              {isLoading ? <ActivityIndicator size="small" color={c.primary} /> : <Text style={[styles.heroNumber, { color: c.primary }]}>{inStockPercentage}%</Text>}
               <Text style={[styles.heroLabel, { color: c.textSecondary }]}>
                 Stock Level
               </Text>
@@ -98,12 +121,12 @@ export default function HomeScreen() {
         {/* ── Metric Grid (2 columns) ─────────────── */}
         <View style={styles.gridRow}>
           <BentoCard style={styles.gridItem}>
-            <View style={[styles.metricIcon, { backgroundColor: "#FFF3E0" }]}>
-              <MaterialIcons name="warning-amber" size={20} color="#F57C00" />
+            <View style={[styles.metricIcon, { backgroundColor: "#FFEBEE" }]}>
+              <MaterialIcons name="warning-amber" size={20} color="#D32F2F" />
             </View>
-            <Text style={[styles.metricNumber, { color: c.text }]}>12</Text>
+            {isLoading ? <ActivityIndicator size="small" color={c.primary} /> : <Text style={[styles.metricNumber, { color: c.text }]}>{lowStockCount + criticalCount}</Text>}
             <Text style={[styles.metricLabel, { color: c.textSecondary }]}>
-              Low Stock
+              Low/Critical Stock
             </Text>
             <StatusBadge status="Warning" text="Needs Restock" />
           </BentoCard>
@@ -166,7 +189,7 @@ export default function HomeScreen() {
         </View>
       </ScrollView>
 
-      <PrimaryActionFab icon="add" onPress={() => console.log("Add Item")} />
+      <PrimaryActionFab icon="add" onPress={handleAddMockItem} />
     </SafeAreaView>
   );
 }

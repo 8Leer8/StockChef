@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, ScrollView, View, Text, Platform } from 'react-native';
+import { StyleSheet, ScrollView, View, Text, Platform, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
@@ -7,29 +7,34 @@ import { BentoCard } from '@/components/ui/BentoCard';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Colors, Layout, Shadows } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-
-// ── Mock Data ─────────────────────────────────────────────────
-const CATEGORIES = [
-  { id: 'all', label: 'All', count: 156 },
-  { id: 'produce', label: 'Produce', count: 42 },
-  { id: 'dairy', label: 'Dairy', count: 28 },
-  { id: 'meat', label: 'Meat', count: 35 },
-  { id: 'dry', label: 'Dry Goods', count: 51 },
-];
-
-const INVENTORY = [
-  { id: '1', name: 'Avocados (Hass)',    stock: 45,  unit: 'pcs', status: 'Good' as const,     statusText: 'In Stock',     icon: 'eco',        cat: 'Produce' },
-  { id: '2', name: 'Fresh Whole Milk',   stock: 12,  unit: 'L',   status: 'Warning' as const,  statusText: 'Low Stock',    icon: 'water-drop', cat: 'Dairy' },
-  { id: '3', name: 'Atlantic Salmon',    stock: 0,   unit: 'kg',  status: 'Critical' as const,  statusText: 'Out of Stock', icon: 'set-meal',   cat: 'Meat' },
-  { id: '4', name: 'Sourdough Buns',     stock: 120, unit: 'pcs', status: 'Good' as const,     statusText: 'In Stock',     icon: 'bakery-dining', cat: 'Dry Goods' },
-  { id: '5', name: 'Truffle Oil',        stock: 2,   unit: 'btl', status: 'Warning' as const,  statusText: 'Low Stock',    icon: 'local-dining', cat: 'Dry Goods' },
-  { id: '6', name: 'Organic Eggs',       stock: 60,  unit: 'pcs', status: 'Good' as const,     statusText: 'In Stock',     icon: 'egg',        cat: 'Dairy' },
-];
+import { useInventoryQuery, Ingredient } from '@/hooks/useInventory';
+import { useUIStore } from '@/store/useUIStore';
 
 export default function InventoryScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const c = Colors[colorScheme];
-  const [activeCategory, setActiveCategory] = React.useState('all');
+  
+  const { activeCategory, setActiveCategory } = useUIStore();
+  const { data: inventory = [], isLoading, isError, error } = useInventoryQuery();
+
+  // Compute categories based on data
+  const categories = React.useMemo(() => {
+    const counts: Record<string, number> = { 'All': inventory.length };
+    inventory.forEach((item) => {
+      counts[item.category] = (counts[item.category] || 0) + 1;
+    });
+    return Object.keys(counts).map(key => ({ id: key, label: key, count: counts[key] }));
+  }, [inventory]);
+
+  const filteredInventory = React.useMemo(() => {
+    if (activeCategory === 'All') return inventory;
+    return inventory.filter(item => item.category === activeCategory);
+  }, [inventory, activeCategory]);
+
+  const totalItems = inventory.reduce((acc, item) => acc + item.quantity, 0);
+  const inStockPercentage = inventory.length > 0 
+    ? Math.round((inventory.filter(item => item.quantity > 0).length / inventory.length) * 100) 
+    : 0;
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: c.background }]} edges={['top']}>
@@ -48,11 +53,11 @@ export default function InventoryScreen() {
         {/* ── Summary Row ──────────────────────────── */}
         <BentoCard style={styles.summaryCard}>
           <View style={styles.summaryRow}>
-            <SummaryMetric value="1,204" label="Total Items" color={c.text} muted={c.textSecondary} />
+            <SummaryMetric value={totalItems.toLocaleString()} label="Total Items" color={c.text} muted={c.textSecondary} />
             <View style={[styles.summaryDivider, { backgroundColor: c.border }]} />
-            <SummaryMetric value="18" label="Categories" color={c.text} muted={c.textSecondary} />
+            <SummaryMetric value={categories.length > 1 ? (categories.length - 1).toString() : '0'} label="Categories" color={c.text} muted={c.textSecondary} />
             <View style={[styles.summaryDivider, { backgroundColor: c.border }]} />
-            <SummaryMetric value="96%" label="In Stock" color={c.primary} muted={c.textSecondary} />
+            <SummaryMetric value={`${inStockPercentage}%`} label="In Stock" color={c.primary} muted={c.textSecondary} />
           </View>
         </BentoCard>
 
@@ -62,11 +67,12 @@ export default function InventoryScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.chipRow}
         >
-          {CATEGORIES.map((cat) => {
+          {categories.map((cat) => {
             const isActive = activeCategory === cat.id;
             return (
               <View
                 key={cat.id}
+                onTouchEnd={() => setActiveCategory(cat.id)}
                 style={[
                   styles.chip,
                   {
@@ -98,26 +104,48 @@ export default function InventoryScreen() {
 
         {/* ── Inventory List ───────────────────────── */}
         <BentoCard style={styles.listCard}>
-          {INVENTORY.map((item, idx) => (
-            <React.Fragment key={item.id}>
-              {idx > 0 && <View style={[styles.listDivider, { backgroundColor: c.borderLight }]} />}
-              <View style={styles.listItem}>
-                <View style={[styles.itemIconBox, { backgroundColor: c.primary + '10' }]}>
-                  <MaterialIcons name={item.icon as any} size={20} color={c.primary} />
-                </View>
-                <View style={styles.itemInfo}>
-                  <Text style={[styles.itemName, { color: c.text }]}>{item.name}</Text>
-                  <Text style={[styles.itemMeta, { color: c.textTertiary }]}>{item.cat}</Text>
-                </View>
-                <View style={styles.itemRight}>
-                  <Text style={[styles.itemStock, { color: c.text }]}>
-                    {item.stock} <Text style={[styles.itemUnit, { color: c.textTertiary }]}>{item.unit}</Text>
-                  </Text>
-                  <StatusBadge status={item.status} text={item.statusText} />
-                </View>
-              </View>
-            </React.Fragment>
-          ))}
+          {isLoading ? (
+            <View style={{ padding: 40, alignItems: 'center' }}>
+              <ActivityIndicator size="large" color={c.primary} />
+            </View>
+          ) : isError ? (
+             <View style={{ padding: 40, alignItems: 'center' }}>
+               <Text style={{ color: 'red' }}>Error: {(error as Error).message}</Text>
+             </View>
+          ) : filteredInventory.length === 0 ? (
+             <View style={{ padding: 40, alignItems: 'center' }}>
+               <Text style={{ color: c.textSecondary }}>No items found.</Text>
+             </View>
+          ) : (
+            filteredInventory.map((item, idx) => {
+              const status = item.quantity === 0 ? 'Critical' : item.quantity < 5 ? 'Warning' : 'Good';
+              const statusText = item.quantity === 0 ? 'Out of Stock' : item.quantity < 5 ? 'Low Stock' : 'In Stock';
+              
+              // We could use category logic to determine icon, but for now we'll default to 'eco'
+              const icon = item.category === 'Produce' ? 'eco' : item.category === 'Dairy' ? 'water-drop' : item.category === 'Meat' ? 'set-meal' : 'inventory-2';
+
+              return (
+                <React.Fragment key={item.id}>
+                  {idx > 0 && <View style={[styles.listDivider, { backgroundColor: c.borderLight }]} />}
+                  <View style={styles.listItem}>
+                    <View style={[styles.itemIconBox, { backgroundColor: c.primary + '10' }]}>
+                      <MaterialIcons name={icon as any} size={20} color={c.primary} />
+                    </View>
+                    <View style={styles.itemInfo}>
+                      <Text style={[styles.itemName, { color: c.text }]}>{item.name}</Text>
+                      <Text style={[styles.itemMeta, { color: c.textTertiary }]}>{item.category}</Text>
+                    </View>
+                    <View style={styles.itemRight}>
+                      <Text style={[styles.itemStock, { color: c.text }]}>
+                        {item.quantity} <Text style={[styles.itemUnit, { color: c.textTertiary }]}>{item.unit}</Text>
+                      </Text>
+                      <StatusBadge status={status} text={statusText} />
+                    </View>
+                  </View>
+                </React.Fragment>
+              );
+            })
+          )}
         </BentoCard>
       </ScrollView>
     </SafeAreaView>
