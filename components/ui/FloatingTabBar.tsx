@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Pressable, Text, Platform } from 'react-native';
+import { View, StyleSheet, Pressable, Platform } from 'react-native';
 import { BlurView } from 'expo-blur';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
@@ -16,12 +16,10 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 // Direct icon config — no broken SF Symbol mapping needed
 const TAB_ICONS: Record<string, string> = {
   index: 'home',
-  explore: 'inventory-2',
-};
-
-const TAB_LABELS: Record<string, string> = {
-  index: 'Home',
-  explore: 'Inventory',
+  inventory: 'inventory-2',
+  recipes: 'restaurant-menu',
+  history: 'history',
+  settings: 'settings',
 };
 
 export function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
@@ -43,7 +41,6 @@ export function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarP
           {state.routes.map((route, index) => {
             const isFocused = state.index === index;
             const iconName = TAB_ICONS[route.name] || 'circle';
-            const label = TAB_LABELS[route.name] || route.name;
 
             const onPress = () => {
               const event = navigation.emit({
@@ -60,7 +57,6 @@ export function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarP
               <TabItem
                 key={route.key}
                 icon={iconName}
-                label={label}
                 isFocused={isFocused}
                 activeColor={colors.primary}
                 inactiveColor={colors.tabIconDefault}
@@ -78,7 +74,6 @@ export function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarP
 // ── Individual Tab Item with micro-animation ──────────────────
 type TabItemProps = {
   icon: string;
-  label: string;
   isFocused: boolean;
   activeColor: string;
   inactiveColor: string;
@@ -86,19 +81,13 @@ type TabItemProps = {
   onPress: () => void;
 };
 
-function TabItem({ icon, label, isFocused, activeColor, inactiveColor, activeBg, onPress }: TabItemProps) {
+function TabItem({ icon, isFocused, activeColor, inactiveColor, activeBg, onPress }: TabItemProps) {
   const scale = useSharedValue(1);
 
   const containerAnim = useAnimatedStyle(() => ({
     backgroundColor: withTiming(isFocused ? activeBg : 'transparent', { duration: 200 }),
-    paddingHorizontal: withTiming(isFocused ? 16 : 12, { duration: 200 }),
+    paddingHorizontal: withTiming(isFocused ? 14 : 10, { duration: 200 }),
     transform: [{ scale: scale.value }],
-  }));
-
-  const labelAnim = useAnimatedStyle(() => ({
-    width: withTiming(isFocused ? 'auto' as any : 0, { duration: 200 }),
-    opacity: withTiming(isFocused ? 1 : 0, { duration: 150 }),
-    marginLeft: withTiming(isFocused ? 6 : 0, { duration: 200 }),
   }));
 
   return (
@@ -111,17 +100,9 @@ function TabItem({ icon, label, isFocused, activeColor, inactiveColor, activeBg,
       <Animated.View style={[styles.tabItem, containerAnim]}>
         <MaterialIcons
           name={icon as any}
-          size={22}
+          size={isFocused ? 26 : 24}
           color={isFocused ? activeColor : inactiveColor}
         />
-        {isFocused && (
-          <Animated.Text
-            style={[styles.tabLabel, { color: activeColor }, labelAnim]}
-            numberOfLines={1}
-          >
-            {label}
-          </Animated.Text>
-        )}
       </Animated.View>
     </Pressable>
   );
@@ -131,9 +112,9 @@ const styles = StyleSheet.create({
   outerContainer: {
     position: 'absolute',
     bottom: Platform.OS === 'ios' ? 28 : 16,
-    left: 40,
-    right: 40,
-    height: 60,
+    left: 20,
+    right: 20,
+    height: 64,
     borderRadius: Layout.radius.xl,
   },
   blurWrap: {
@@ -145,9 +126,9 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: Layout.spacing.lg,
-    gap: 8,
+    justifyContent: 'space-between',
+    paddingHorizontal: Layout.spacing.md,
+    gap: 4,
     borderRadius: Layout.radius.xl,
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.04)',
@@ -163,10 +144,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 10,
     borderRadius: Layout.radius.md,
-  },
-  tabLabel: {
-    fontWeight: '700',
-    fontSize: 13,
-    letterSpacing: 0.3,
   },
 });

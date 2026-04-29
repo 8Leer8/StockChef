@@ -1,44 +1,47 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { useRouter } from "expo-router";
 import React from "react";
-import { Platform, ScrollView, StyleSheet, Text, View, ActivityIndicator } from "react-native";
+import {
+  ActivityIndicator,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { BentoCard } from "@/components/ui/BentoCard";
 import { PrimaryActionFab } from "@/components/ui/PrimaryActionFab";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { Colors, Layout } from "@/constants/theme";
+import { Colors, Layout, StatusColors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { useInventoryQuery, useAddIngredientMutation } from "@/hooks/useInventory";
+import { useAnalytics } from "@/hooks/useAnalytics";
+import { useProfileQuery } from "@/hooks/useInventory";
 
 export default function HomeScreen() {
   const colorScheme = useColorScheme() ?? "light";
   const c = Colors[colorScheme];
+  const router = useRouter();
 
-  const { data: inventory = [], isLoading } = useInventoryQuery();
-  const addMutation = useAddIngredientMutation();
+  const {
+    isLoading,
+    totalInventoryValue,
+    financialLoss,
+    averageMargin,
+    lowStockCount,
+    criticalCount,
+    expiringSoonItems,
+    totalItems,
+    inStockPercentage,
+  } = useAnalytics();
 
-  const handleAddMockItem = () => {
-    addMutation.mutate({
-      name: 'Fresh Basil',
-      category: 'Produce',
-      quantity: 10,
-      unit: 'bunch',
-      unit_price: 2.50,
-      expiry_date: new Date(Date.now() + 86400000 * 5).toISOString()
-    });
-  };
-
-  const totalItems = inventory.reduce((acc, item) => acc + item.quantity, 0);
-  const inStockPercentage = inventory.length > 0 
-    ? Math.round((inventory.filter(item => item.quantity > 0).length / inventory.length) * 100) 
-    : 0;
-  
-  const lowStockCount = inventory.filter(item => item.quantity > 0 && item.quantity < 5).length;
-  const criticalCount = inventory.filter(item => item.quantity === 0).length;
+  const { data: profile } = useProfileQuery();
 
   // Dynamic greeting
   const hour = new Date().getHours();
-  const greeting =
+  const greetingPrefix =
     hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
   const dateStr = new Date()
     .toLocaleDateString("en-US", {
@@ -47,6 +50,8 @@ export default function HomeScreen() {
       day: "numeric",
     })
     .toUpperCase();
+
+  const displayName = profile?.display_name || "Fran";
 
   return (
     <SafeAreaView
@@ -64,56 +69,62 @@ export default function HomeScreen() {
               {dateStr}
             </Text>
             <Text style={[styles.greeting, { color: c.text }]}>
-              {greeting}, Fran!
+              {greetingPrefix}, {displayName}!
             </Text>
           </View>
-          <View
+          <TouchableOpacity 
+            onPress={() => router.push('/settings')}
             style={[styles.avatarCircle, { backgroundColor: c.primary + "12" }]}
           >
             <MaterialIcons name="person" size={22} color={c.primary} />
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* ── Hero Summary Card ─────────────────────── */}
-        <BentoCard variant="highlight" style={styles.heroCard}>
+        <BentoCard variant="highlight" style={[styles.heroCard, { backgroundColor: c.primary, borderColor: c.primary }]}>
           <View style={styles.heroTop}>
-            <View
-              style={[
-                styles.heroIconBox,
-                { backgroundColor: c.primary + "20" },
-              ]}
-            >
-              <MaterialIcons name="trending-up" size={20} color={c.primary} />
+            <View>
+              <Text style={[styles.heroLabel, { color: '#FFF', opacity: 0.8 }]}>Inventory Health</Text>
+              <Text style={[styles.heroNumber, { color: '#FFF', fontSize: 32 }]}>{inStockPercentage}%</Text>
             </View>
-            <StatusBadge status="Good" text="All Systems Go" />
+            <StatusBadge 
+              status={inStockPercentage > 90 ? "Good" : inStockPercentage > 70 ? "Warning" : "Critical"} 
+              text={inStockPercentage > 90 ? "Healthy" : inStockPercentage > 70 ? "Stable" : "Low Stock"} 
+              style={{ backgroundColor: 'rgba(255,255,255,0.2)', borderWidth: 0 }}
+              textStyle={{ color: '#FFF' }}
+            />
           </View>
-          <Text style={[styles.heroTitle, { color: c.text }]}>
-            Inventory Health
-          </Text>
+          
+          {/* Health Progress Bar */}
+          <View style={styles.healthBarContainer}>
+            <View style={[styles.healthBarBg, { backgroundColor: c.borderLight }]}>
+              <View 
+                style={[
+                  styles.healthBarFill, 
+                  { 
+                    width: `${inStockPercentage}%`, 
+                    backgroundColor: inStockPercentage > 80 ? '#4ade80' : inStockPercentage > 50 ? '#fbbf24' : '#f87171' 
+                  }
+                ]} 
+              />
+            </View>
+          </View>
+
+          <View style={[styles.heroDivider, { backgroundColor: 'rgba(255,255,255,0.2)' }]} />
+          
           <View style={styles.heroMetrics}>
             <View style={styles.heroMetric}>
-              {isLoading ? <ActivityIndicator size="small" color={c.primary} /> : <Text style={[styles.heroNumber, { color: c.primary }]}>{inStockPercentage}%</Text>}
-              <Text style={[styles.heroLabel, { color: c.textSecondary }]}>
-                Stock Level
-              </Text>
+              {isLoading ? (
+                <ActivityIndicator size="small" color="#FFF" />
+              ) : (
+                <Text style={[styles.heroNumber, { color: '#FFF', fontSize: 18 }]}>₱{totalInventoryValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</Text>
+              )}
+              <Text style={[styles.heroLabel, { color: 'rgba(255,255,255,0.8)' }]}>Total Value</Text>
             </View>
-            <View style={[styles.heroDivider, { backgroundColor: c.border }]} />
+            <View style={[styles.heroMetricDivider, { backgroundColor: 'rgba(255,255,255,0.2)' }]} />
             <View style={styles.heroMetric}>
-              <Text style={[styles.heroNumber, { color: c.primary }]}>
-                ↓ 3%
-              </Text>
-              <Text style={[styles.heroLabel, { color: c.textSecondary }]}>
-                Waste Rate
-              </Text>
-            </View>
-            <View style={[styles.heroDivider, { backgroundColor: c.border }]} />
-            <View style={styles.heroMetric}>
-              <Text style={[styles.heroNumber, { color: c.primary }]}>
-                ₱24k
-              </Text>
-              <Text style={[styles.heroLabel, { color: c.textSecondary }]}>
-                Saved
-              </Text>
+              <Text style={[styles.heroNumber, { color: '#FFF', fontSize: 18 }]}>₱{financialLoss.toLocaleString(undefined, { maximumFractionDigits: 0 })}</Text>
+              <Text style={[styles.heroLabel, { color: 'rgba(255,255,255,0.8)' }]}>Waste Loss</Text>
             </View>
           </View>
         </BentoCard>
@@ -124,7 +135,13 @@ export default function HomeScreen() {
             <View style={[styles.metricIcon, { backgroundColor: "#FFEBEE" }]}>
               <MaterialIcons name="warning-amber" size={20} color="#D32F2F" />
             </View>
-            {isLoading ? <ActivityIndicator size="small" color={c.primary} /> : <Text style={[styles.metricNumber, { color: c.text }]}>{lowStockCount + criticalCount}</Text>}
+            {isLoading ? (
+              <ActivityIndicator size="small" color={c.primary} />
+            ) : (
+              <Text style={[styles.metricNumber, { color: c.text }]}>
+                {lowStockCount + criticalCount}
+              </Text>
+            )}
             <Text style={[styles.metricLabel, { color: c.textSecondary }]}>
               Low/Critical Stock
             </Text>
@@ -132,14 +149,32 @@ export default function HomeScreen() {
           </BentoCard>
 
           <BentoCard style={styles.gridItem}>
-            <View style={[styles.metricIcon, { backgroundColor: "#E8F5E9" }]}>
-              <MaterialIcons name="show-chart" size={20} color="#2E7D32" />
+            <View
+              style={[
+                styles.metricIcon,
+                { backgroundColor: averageMargin > 0 ? "#E8F5E9" : "#F5F5F5" },
+              ]}
+            >
+              <MaterialIcons
+                name="show-chart"
+                size={20}
+                color={averageMargin > 0 ? "#2E7D32" : "#9E9E9E"}
+              />
             </View>
-            <Text style={[styles.metricNumber, { color: c.text }]}>+15%</Text>
+            {isLoading ? (
+              <ActivityIndicator size="small" color={c.primary} />
+            ) : (
+              <Text style={[styles.metricNumber, { color: c.text }]}>
+                {averageMargin > 0 ? `+${averageMargin.toFixed(1)}%` : "0%"}
+              </Text>
+            )}
             <Text style={[styles.metricLabel, { color: c.textSecondary }]}>
               Est. Margin
             </Text>
-            <StatusBadge status="Good" text="Trending Up" />
+            <StatusBadge
+              status={averageMargin > 0 ? "Good" : "Neutral"}
+              text={averageMargin > 0 ? "Trending Up" : "No Data"}
+            />
           </BentoCard>
         </View>
 
@@ -154,26 +189,42 @@ export default function HomeScreen() {
                 Expiry Alerts
               </Text>
             </View>
-            <StatusBadge status="Critical" text="2 Items" />
+            <TouchableOpacity
+              onPress={() => router.push("/log-waste")}
+              style={{
+                backgroundColor: StatusColors.danger.accent,
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                borderRadius: Layout.radius.pill,
+              }}
+            >
+              <Text style={{ color: "#FFF", fontSize: 12, fontWeight: "700" }}>
+                Log Waste
+              </Text>
+            </TouchableOpacity>
           </View>
 
           {/* Alert Items */}
           <View style={styles.alertList}>
-            <AlertRow
-              name="Fresh Basil"
-              detail="Expires tomorrow"
-              icon="eco"
-              colors={c}
-            />
-            <View
-              style={[styles.alertDivider, { backgroundColor: c.borderLight }]}
-            />
-            <AlertRow
-              name="Heavy Cream"
-              detail="Expires in 2 days"
-              icon="water-drop"
-              colors={c}
-            />
+            {expiringSoonItems.length === 0 ? (
+              <Text style={{ color: c.textTertiary, textAlign: 'center', paddingVertical: 20 }}>No items expiring soon.</Text>
+            ) : (
+              expiringSoonItems.map((item, index) => (
+                <React.Fragment key={item.id}>
+                  <AlertRow
+                    name={item.name}
+                    detail={`Expires ${new Date(item.expiry_date!).toLocaleDateString()}`}
+                    icon="eco"
+                    colors={c}
+                  />
+                  {index < expiringSoonItems.length - 1 && (
+                    <View
+                      style={[styles.alertDivider, { backgroundColor: c.borderLight }]}
+                    />
+                  )}
+                </React.Fragment>
+              ))
+            )}
           </View>
         </BentoCard>
 
@@ -182,14 +233,18 @@ export default function HomeScreen() {
           Quick Actions
         </Text>
         <View style={styles.actionRow}>
-          <ActionChip icon="qr-code-scanner" label="Scan" colors={c} />
-          <ActionChip icon="add-shopping-cart" label="Restock" colors={c} />
-          <ActionChip icon="receipt-long" label="Recipes" colors={c} />
-          <ActionChip icon="insights" label="Reports" colors={c} />
+          <ActionChip icon="inventory" label="Inventory" colors={c} onPress={() => router.push('/inventory')} />
+          <ActionChip icon="restaurant-menu" label="Recipes" colors={c} onPress={() => router.push('/recipes')} />
+          <ActionChip icon="add-circle" label="Add" colors={c} onPress={() => router.push('/add-ingredient')} />
+          <ActionChip icon="history" label="History" colors={c} onPress={() => router.push('/history')} />
         </View>
       </ScrollView>
 
-      <PrimaryActionFab icon="add" onPress={handleAddMockItem} />
+      {/* Main Floating Action Button */}
+      <PrimaryActionFab
+        icon="add"
+        onPress={() => router.push("/add-ingredient")}
+      />
     </SafeAreaView>
   );
 }
@@ -231,13 +286,17 @@ function ActionChip({
   icon,
   label,
   colors,
+  onPress,
 }: {
   icon: string;
   label: string;
   colors: any;
+  onPress?: () => void;
 }) {
   return (
-    <View
+    <TouchableOpacity
+      activeOpacity={0.7}
+      onPress={onPress}
       style={[
         styles.actionChip,
         { backgroundColor: colors.surface, borderColor: colors.border },
@@ -254,7 +313,7 @@ function ActionChip({
       <Text style={[styles.actionChipLabel, { color: colors.text }]}>
         {label}
       </Text>
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -294,28 +353,35 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 
-  // Hero Card
+  // Hero Card Redesign Styles
+  // Hero Card Styles
   heroCard: {
     marginBottom: Layout.spacing.lg,
   },
   heroTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: Layout.spacing.md,
   },
-  heroIconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: Layout.radius.sm,
-    alignItems: "center",
-    justifyContent: "center",
+  healthBarContainer: {
+    marginTop: 12,
+    width: '100%',
   },
-  heroTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    marginBottom: Layout.spacing.lg,
-    letterSpacing: -0.3,
+  healthBarBg: {
+    height: 6,
+    borderRadius: 3,
+    width: '100%',
+    overflow: 'hidden',
+  },
+  healthBarFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  heroDivider: {
+    height: 1,
+    width: '100%',
+    marginVertical: 20,
   },
   heroMetrics: {
     flexDirection: "row",
@@ -325,6 +391,10 @@ const styles = StyleSheet.create({
   heroMetric: {
     flex: 1,
     alignItems: "center",
+  },
+  heroMetricDivider: {
+    width: 1,
+    height: 24,
   },
   heroNumber: {
     fontSize: 22,
@@ -337,10 +407,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     letterSpacing: 0.3,
     textTransform: "uppercase",
-  },
-  heroDivider: {
-    width: 1,
-    height: 32,
   },
 
   // Grid
