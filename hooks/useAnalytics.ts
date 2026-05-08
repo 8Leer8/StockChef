@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
+import { getRecipesWithIngredients, getWasteLogs } from '@/lib/mockData';
 import { Ingredient, useInventoryQuery } from './useInventory';
 
 export function useAnalytics() {
@@ -9,11 +9,7 @@ export function useAnalytics() {
   const { data: wasteLogs = [], isLoading: isWasteLoading } = useQuery({
     queryKey: ['waste_logs'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('waste_logs')
-        .select('*');
-      if (error) throw new Error(error.message);
-      return data;
+      return getWasteLogs();
     }
   });
 
@@ -21,17 +17,7 @@ export function useAnalytics() {
   const { data: recipes = [], isLoading: isRecipesLoading } = useQuery({
     queryKey: ['recipes'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('recipes')
-        .select(`
-          *,
-          recipe_ingredients (
-            ingredient_id,
-            quantity_required
-          )
-        `);
-      if (error) throw new Error(error.message);
-      return data;
+      return getRecipesWithIngredients();
     }
   });
 

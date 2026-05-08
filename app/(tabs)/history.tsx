@@ -2,34 +2,23 @@ import React from 'react';
 import { StyleSheet, View, Text, ScrollView, ActivityIndicator, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
+import { useHistoryQuery } from '@/hooks/useInventory';
 
 import { BentoCard } from '@/components/ui/BentoCard';
-import { Colors, Layout } from '@/constants/theme';
+import { Colors, Layout, StatusColors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function HistoryScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const c = Colors[colorScheme];
 
-  const { data: logs = [], isLoading } = useQuery({
-    queryKey: ['inventory_history'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('inventory_history')
-        .select('*')
-        .order('created_at', { ascending: false });
-      if (error) throw new Error(error.message);
-      return data;
-    }
-  });
+  const { data: logs = [], isLoading } = useHistoryQuery();
 
   const getMovementStyle = (type: string) => {
     switch(type) {
       case 'STOCK_IN': return { icon: 'add-circle-outline', color: c.primary, label: 'Stock In', bg: c.primary + '15' };
       case 'STOCK_OUT': return { icon: 'remove-circle-outline', color: c.textSecondary, label: 'Stock Out', bg: c.border };
-      case 'WASTE': return { icon: 'delete-sweep', color: c.danger, label: 'Waste', bg: c.danger + '15' };
+      case 'WASTE': return { icon: 'delete-sweep', color: StatusColors.danger.accent, label: 'Waste', bg: StatusColors.danger.bg };
       case 'ADJUSTMENT': return { icon: 'settings-backup-restore', color: '#f59e0b', label: 'Adjustment', bg: '#fef3c7' };
       default: return { icon: 'history', color: c.textTertiary, label: 'Event', bg: c.border };
     }
