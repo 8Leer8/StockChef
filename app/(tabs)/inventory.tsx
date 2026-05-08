@@ -7,7 +7,7 @@ import { useRouter } from 'expo-router';
 
 import { BentoCard } from '@/components/ui/BentoCard';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { Colors, Layout, Shadows } from '@/constants/theme';
+import { Colors, Layout, Shadows, StatusColors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useInventoryQuery, Ingredient, useDeleteIngredientMutation, useIngredientBatchesQuery } from '@/hooks/useInventory';
 import { useUIStore } from '@/store/useUIStore';
@@ -248,8 +248,8 @@ export default function InventoryScreen() {
                         onPress={() => handleDelete(item.id, item.name)}
                         style={styles.footerActionBtn}
                       >
-                        <MaterialIcons name="delete-outline" size={16} color={c.danger} />
-                        <Text style={[styles.footerActionText, { color: c.danger }]}>Delete</Text>
+                        <MaterialIcons name="delete-outline" size={16} color={StatusColors.danger.accent} />
+                        <Text style={[styles.footerActionText, { color: StatusColors.danger.accent }]}>Delete</Text>
                       </TouchableOpacity>
                     </View>
                   </View>

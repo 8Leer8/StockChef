@@ -101,7 +101,7 @@ export default function SettingsScreen() {
                     )}
                   </TouchableOpacity>
                   <TouchableOpacity onPress={() => setEditingName(false)}>
-                    <MaterialIcons name="close" size={24} color={c.danger} />
+                    <MaterialIcons name="close" size={24} color={StatusColors.danger.accent} />
                   </TouchableOpacity>
                 </View>
               ) : (
@@ -181,7 +181,7 @@ export default function SettingsScreen() {
                 <View key={cat.id} style={[styles.catItem, { borderBottomColor: c.borderLight }]}>
                   <Text style={[styles.catName, { color: c.text }]}>{cat.name}</Text>
                   <TouchableOpacity onPress={() => handleDeleteCategory(cat.id, cat.name, 'ingredient')}>
-                    <MaterialIcons name="delete-outline" size={18} color={c.danger} />
+                    <MaterialIcons name="delete-outline" size={18} color={StatusColors.danger.accent} />
                   </TouchableOpacity>
                 </View>
               ))
@@ -216,7 +216,7 @@ export default function SettingsScreen() {
                 <View key={cat.id} style={[styles.catItem, { borderBottomColor: c.borderLight }]}>
                   <Text style={[styles.catName, { color: c.text }]}>{cat.name}</Text>
                   <TouchableOpacity onPress={() => handleDeleteCategory(cat.id, cat.name, 'recipe')}>
-                    <MaterialIcons name="delete-outline" size={18} color={c.danger} />
+                    <MaterialIcons name="delete-outline" size={18} color={StatusColors.danger.accent} />
                   </TouchableOpacity>
                 </View>
               ))

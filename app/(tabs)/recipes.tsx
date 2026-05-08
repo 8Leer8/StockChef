@@ -6,7 +6,7 @@ import { useRouter } from 'expo-router';
 
 import { BentoCard } from '@/components/ui/BentoCard';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { Colors, Layout } from '@/constants/theme';
+import { Colors, Layout, StatusColors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { useDeleteRecipeMutation, useRecipesQuery } from '@/hooks/useInventory';
@@ -85,7 +85,7 @@ export default function RecipesScreen() {
                     <Text style={[styles.recipeCategory, { color: c.textTertiary }]}>{recipe.category}</Text>
                   </View>
                   <TouchableOpacity onPress={() => handleDelete(recipe.id, recipe.name)}>
-                    <MaterialIcons name="delete-outline" size={22} color={c.danger} />
+                    <MaterialIcons name="delete-outline" size={22} color={StatusColors.danger.accent} />
                   </TouchableOpacity>
                 </View>
                 

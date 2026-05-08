@@ -8,7 +8,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router } from 'expo-router';
 
 import { useInventoryQuery, useAddRecipeMutation, useCategoriesQuery } from '@/hooks/useInventory';
-import { Colors, Layout } from '@/constants/theme';
+import { Colors, Layout, StatusColors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 const schema = z.object({
@@ -116,7 +116,7 @@ export default function AddRecipeModal() {
               name="name"
               render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
-                  style={[styles.input, { backgroundColor: c.surface, color: c.text, borderColor: errors.name ? c.danger : c.border }]}
+                  style={[styles.input, { backgroundColor: c.surface, color: c.text, borderColor: errors.name ? StatusColors.danger.accent : c.border }]}
                   onBlur={onBlur}
                   onChangeText={onChange}
                   value={value}
@@ -125,7 +125,7 @@ export default function AddRecipeModal() {
                 />
               )}
             />
-            {errors.name && <Text style={[styles.error, { color: c.danger }]}>{errors.name.message}</Text>}
+            {errors.name && <Text style={[styles.error, { color: StatusColors.danger.accent }]}>{errors.name.message}</Text>}
           </View>
 
           {/* Category */}
@@ -161,7 +161,7 @@ export default function AddRecipeModal() {
                 name="sellingPrice"
                 render={({ field: { onChange, onBlur, value } }) => (
                   <TextInput
-                    style={[styles.input, { backgroundColor: c.surface, color: c.text, borderColor: errors.sellingPrice ? c.danger : c.border }]}
+                    style={[styles.input, { backgroundColor: c.surface, color: c.text, borderColor: errors.sellingPrice ? StatusColors.danger.accent : c.border }]}
                     onBlur={onBlur}
                     onChangeText={onChange}
                     value={value}
@@ -171,7 +171,7 @@ export default function AddRecipeModal() {
                   />
                 )}
               />
-              {errors.sellingPrice && <Text style={[styles.error, { color: c.danger }]}>{errors.sellingPrice.message}</Text>}
+              {errors.sellingPrice && <Text style={[styles.error, { color: StatusColors.danger.accent }]}>{errors.sellingPrice.message}</Text>}
             </View>
             <View style={[styles.inputGroup, { flex: 1 }]}>
               <Text style={[styles.label, { color: c.textSecondary }]}>Target Margin %</Text>
@@ -180,7 +180,7 @@ export default function AddRecipeModal() {
                 name="targetMargin"
                 render={({ field: { onChange, onBlur, value } }) => (
                   <TextInput
-                    style={[styles.input, { backgroundColor: c.surface, color: c.text, borderColor: errors.targetMargin ? c.danger : c.border }]}
+                    style={[styles.input, { backgroundColor: c.surface, color: c.text, borderColor: errors.targetMargin ? StatusColors.danger.accent : c.border }]}
                     onBlur={onBlur}
                     onChangeText={onChange}
                     value={value}
@@ -190,7 +190,7 @@ export default function AddRecipeModal() {
                   />
                 )}
               />
-              {errors.targetMargin && <Text style={[styles.error, { color: c.danger }]}>{errors.targetMargin.message}</Text>}
+              {errors.targetMargin && <Text style={[styles.error, { color: StatusColors.danger.accent }]}>{errors.targetMargin.message}</Text>}
             </View>
           </View>
 
@@ -210,7 +210,7 @@ export default function AddRecipeModal() {
                       <Text style={{ color: c.text, flex: 1 }}>{item?.name || 'Unknown'}</Text>
                       <Text style={{ color: c.textSecondary, marginRight: 12 }}>{ri.quantity_required} {item?.unit}</Text>
                       <TouchableOpacity onPress={() => handleRemoveIngredient(idx)}>
-                        <MaterialIcons name="remove-circle-outline" size={20} color={c.danger} />
+                        <MaterialIcons name="remove-circle-outline" size={20} color={StatusColors.danger.accent} />
                       </TouchableOpacity>
                     </View>
                   );

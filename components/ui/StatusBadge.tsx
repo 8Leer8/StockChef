@@ -1,17 +1,19 @@
 import React from 'react';
-import { View, StyleSheet, Text } from 'react-native';
+import { View, StyleSheet, Text, StyleProp, ViewStyle, TextStyle } from 'react-native';
 import { StatusColors, Layout } from '@/constants/theme';
 
 export type StatusBadgeProps = {
   status: 'Good' | 'Warning' | 'Critical' | 'success' | 'warning' | 'danger';
   text: string;
+  style?: StyleProp<ViewStyle>;
+  textStyle?: StyleProp<TextStyle>;
 };
 
 /**
  * Tinted status badge — uses soft background tints with high-contrast text
  * instead of solid filled badges. Feels more premium and modern.
  */
-export function StatusBadge({ status, text }: StatusBadgeProps) {
+export function StatusBadge({ status, text, style, textStyle }: StatusBadgeProps) {
   let palette = StatusColors.success;
 
   if (status === 'Warning' || status === 'warning') {
@@ -21,9 +23,9 @@ export function StatusBadge({ status, text }: StatusBadgeProps) {
   }
 
   return (
-    <View style={[styles.badge, { backgroundColor: palette.bg }]}>
+    <View style={[styles.badge, { backgroundColor: palette.bg }, style]}>
       <View style={[styles.dot, { backgroundColor: palette.accent }]} />
-      <Text style={[styles.text, { color: palette.text }]}>{text}</Text>
+      <Text style={[styles.text, { color: palette.text }, textStyle]}>{text}</Text>
     </View>
   );
 }

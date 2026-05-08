@@ -172,7 +172,7 @@ export default function HomeScreen() {
               Est. Margin
             </Text>
             <StatusBadge
-              status={averageMargin > 0 ? "Good" : "Neutral"}
+              status={averageMargin > 0 ? "Good" : "Warning"}
               text={averageMargin > 0 ? "Trending Up" : "No Data"}
             />
           </BentoCard>

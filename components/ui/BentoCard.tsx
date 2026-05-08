@@ -1,12 +1,12 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ViewStyle, StyleProp } from 'react-native';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { Layout, Shadows } from '@/constants/theme';
 
 export type BentoCardProps = {
   children: React.ReactNode;
   onPress?: () => void;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   variant?: 'default' | 'highlight' | 'outline';
 };
 
@@ -29,16 +29,16 @@ export function BentoCard({
     cardBorder = primary + '30';
   }
 
-  const containerStyle: ViewStyle[] = [
+  const containerStyle: StyleProp<ViewStyle> = [
     styles.card,
     {
       backgroundColor: cardBg,
       borderColor: cardBorder,
     },
-    variant === 'outline' && { backgroundColor: 'transparent', borderWidth: 1.5 },
+    variant === 'outline' ? { backgroundColor: 'transparent', borderWidth: 1.5 } : null,
     Shadows.card as ViewStyle,
-    style as ViewStyle,
-  ].filter(Boolean) as ViewStyle[];
+    style,
+  ];
 
   if (onPress) {
     return (

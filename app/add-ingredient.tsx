@@ -8,7 +8,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router, useLocalSearchParams } from 'expo-router';
 
 import { useAddIngredientMutation, useInventoryQuery, useUpdateIngredientMutation, useAddBatchMutation, useStockOutMutation, useCategoriesQuery } from '@/hooks/useInventory';
-import { Colors, Layout } from '@/constants/theme';
+import { Colors, Layout, StatusColors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { BentoCard } from '@/components/ui/BentoCard';
 
@@ -181,7 +181,7 @@ export default function AddIngredientModal() {
                 name="name"
                 render={({ field: { onChange, onBlur, value } }) => (
                   <TextInput
-                    style={[styles.input, { backgroundColor: c.surface, color: c.text, borderColor: errors.name ? c.danger : c.border }]}
+                    style={[styles.input, { backgroundColor: c.surface, color: c.text, borderColor: errors.name ? StatusColors.danger.accent : c.border }]}
                     onBlur={onBlur}
                     onChangeText={onChange}
                     value={value}
@@ -190,7 +190,7 @@ export default function AddIngredientModal() {
                   />
                 )}
               />
-              {errors.name && <Text style={[styles.error, { color: c.danger }]}>{errors.name.message}</Text>}
+              {errors.name && <Text style={[styles.error, { color: StatusColors.danger.accent }]}>{errors.name.message}</Text>}
             </View>
           )}
 
@@ -231,7 +231,7 @@ export default function AddIngredientModal() {
                 name="totalQuantity"
                 render={({ field: { onChange, onBlur, value } }) => (
                   <TextInput
-                    style={[styles.input, { backgroundColor: c.surface, color: c.text, borderColor: errors.totalQuantity ? c.danger : c.border }]}
+                    style={[styles.input, { backgroundColor: c.surface, color: c.text, borderColor: errors.totalQuantity ? StatusColors.danger.accent : c.border }]}
                     onBlur={onBlur}
                     onChangeText={onChange}
                     value={value}
@@ -241,7 +241,7 @@ export default function AddIngredientModal() {
                   />
                 )}
               />
-              {errors.totalQuantity && <Text style={[styles.error, { color: c.danger }]}>{errors.totalQuantity.message}</Text>}
+              {errors.totalQuantity && <Text style={[styles.error, { color: StatusColors.danger.accent }]}>{errors.totalQuantity.message}</Text>}
             </View>
             
             {mode !== 'stock-in' && mode !== 'stock-out' && (
@@ -252,7 +252,7 @@ export default function AddIngredientModal() {
                   name="unit"
                   render={({ field: { onChange, onBlur, value } }) => (
                     <TextInput
-                      style={[styles.input, { backgroundColor: c.surface, color: c.text, borderColor: errors.unit ? c.danger : c.border }]}
+                      style={[styles.input, { backgroundColor: c.surface, color: c.text, borderColor: errors.unit ? StatusColors.danger.accent : c.border }]}
                       onBlur={onBlur}
                       onChangeText={onChange}
                       value={value}
@@ -261,7 +261,7 @@ export default function AddIngredientModal() {
                     />
                   )}
                 />
-                {errors.unit && <Text style={[styles.error, { color: c.danger }]}>{errors.unit.message}</Text>}
+                {errors.unit && <Text style={[styles.error, { color: StatusColors.danger.accent }]}>{errors.unit.message}</Text>}
               </View>
             )}
           </View>
@@ -277,7 +277,7 @@ export default function AddIngredientModal() {
               name="totalPrice"
               render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
-                  style={[styles.input, { backgroundColor: c.surface, color: c.text, borderColor: errors.totalPrice ? c.danger : c.border }]}
+                  style={[styles.input, { backgroundColor: c.surface, color: c.text, borderColor: errors.totalPrice ? StatusColors.danger.accent : c.border }]}
                   onBlur={onBlur}
                   onChangeText={onChange}
                   value={value}
@@ -287,7 +287,7 @@ export default function AddIngredientModal() {
                 />
               )}
             />
-            {errors.totalPrice && <Text style={[styles.error, { color: c.danger }]}>{errors.totalPrice.message}</Text>}
+            {errors.totalPrice && <Text style={[styles.error, { color: StatusColors.danger.accent }]}>{errors.totalPrice.message}</Text>}
           </View>
           )}
 
@@ -300,7 +300,7 @@ export default function AddIngredientModal() {
               name="expiryDays"
               render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
-                  style={[styles.input, { backgroundColor: c.surface, color: c.text, borderColor: errors.expiryDays ? c.danger : c.border }]}
+                  style={[styles.input, { backgroundColor: c.surface, color: c.text, borderColor: errors.expiryDays ? StatusColors.danger.accent : c.border }]}
                   onBlur={onBlur}
                   onChangeText={onChange}
                   value={value}
@@ -310,7 +310,7 @@ export default function AddIngredientModal() {
                 />
               )}
             />
-            {errors.expiryDays && <Text style={[styles.error, { color: c.danger }]}>{errors.expiryDays.message}</Text>}
+            {errors.expiryDays && <Text style={[styles.error, { color: StatusColors.danger.accent }]}>{errors.expiryDays.message}</Text>}
           </View>
           )}
 
